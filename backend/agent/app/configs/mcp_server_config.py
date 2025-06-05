@@ -7,8 +7,9 @@ MCP_SERVERS = {
             "--directory",
             MCP_SERVER_DIR,
             "run",
-            "main.py"
+            "server.py"
         ],
+        "env": {},
         "description": "Medical appointment scheduling server"
     }
 }
