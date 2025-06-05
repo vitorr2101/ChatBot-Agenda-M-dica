@@ -71,6 +71,7 @@ class MCPStdioClient(MCPClientInterface):
             self.logger.error(f"Error closing streams: {e}")
         
         self.session = None
+        self.stdio_stream = None
         self.read_stream = None
         self.write_stream = None
         self.close_func = None

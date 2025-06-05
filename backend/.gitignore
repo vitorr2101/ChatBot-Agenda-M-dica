@@ -160,6 +160,8 @@ build/
 # Temporary files
 *.tmp
 *.temp
+*.temp.*
+*.tmp.*
 
 # Application specific
 uploads/
