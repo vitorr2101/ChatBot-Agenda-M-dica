@@ -18,7 +18,6 @@ class MCPStdioClient(MCPClientInterface):
         self.stdio_stream = None
         self.read_stream = None
         self.write_stream = None
-        self.close_func = None
         self.is_connected = False
         self.logger = logging.getLogger(__name__)
     
