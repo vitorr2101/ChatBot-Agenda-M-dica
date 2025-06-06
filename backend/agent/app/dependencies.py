@@ -15,5 +15,5 @@ def get_llm_client(request: Request) -> LLMClientInterface:
 def get_mcp_client(request: Request) -> MCPClientInterface:
     return request.app.state.mcp_client
 
-def get_mcp_client_tools(request: Request) -> List[Tool]:
-    return request.app.state.mcp_client.list_tools() if request.app.state.mcp_client else []
+async def get_mcp_client_tools(request: Request) -> List[Tool]:
+    return await request.app.state.mcp_client.list_tools() if request.app.state.mcp_client else []
