@@ -76,8 +76,8 @@ class ChatOrchestrator:
                 tools=self.tools
             )
             
-            logger.info(f"LLM Response: {response}")
-            
+            logger.info(f"User message: {message} | LLM Response: {response}")
+            return response
             
         except Exception as e:
             logger.error(f"Error in process_message: {e}")
