@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exception_handlers import http_exception_handler
+from starlette.middleware.sessions import SessionMiddleware
 from mcp.client.stdio import StdioServerParameters
 from contextlib import asynccontextmanager
 import logging
@@ -8,7 +9,7 @@ import logging
 from .services.orchestrator import ChatOrchestrator
 from .services.llm_client import GeminiLLMClient
 from .services.mcp_client import MCPStdioClient
-from .configs.settings import GEMINI_API_KEY, DEFAULT_MODEL
+from .configs.settings import GEMINI_API_KEY, DEFAULT_MODEL, SESSION_SECRET_KEY
 from .configs.mcp_server_config import MCP_SERVERS
 
 logging.basicConfig(
@@ -79,6 +80,14 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET_KEY,
+    session_cookie="session",               
+    same_site="lax",             
+    https_only=False             
 )
 
 app.add_exception_handler(HTTPException, http_exception_handler)
