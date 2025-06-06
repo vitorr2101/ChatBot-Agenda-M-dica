@@ -3,12 +3,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
+# WARNING: This is a simplified in-memory store for development purposes.
+# In production, consider using a persistent store like Redis or a database.
 class ChatStore:
     """In-memory store for chat sessions."""
     
     def __init__(self):
         self._sessions: Dict[str, Any] = {}
+        logger.warning("In production, consider using a persistent store like Redis or a database.")
     
     def set_session(self, session_id: str, chat_session: Any) -> None:
         """Store a chat session."""
@@ -37,5 +39,4 @@ class ChatStore:
         """Get the number of active sessions."""
         return len(self._sessions)
 
-# Global instance
 chat_store = ChatStore()
