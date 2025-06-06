@@ -6,6 +6,8 @@ import logging
 
 from .mcp_client_interface import MCPClientInterface
 
+logger = logging.getLogger(__name__)
+
 
 class MCPStdioClient(MCPClientInterface):
     """
@@ -19,7 +21,6 @@ class MCPStdioClient(MCPClientInterface):
         self.read_stream = None
         self.write_stream = None
         self.is_connected = False
-        self.logger = logging.getLogger(__name__)
     
     async def connect(self) -> ClientSession:
         """
@@ -27,7 +28,7 @@ class MCPStdioClient(MCPClientInterface):
         """
 
         if self.is_connected:
-            self.logger.warning("Already connected to MCP server")
+            logger.warning("Already connected to MCP server")
             return self.session
         
         try:
@@ -41,11 +42,11 @@ class MCPStdioClient(MCPClientInterface):
             await self.session.initialize()
             
             self.is_connected = True
-            self.logger.info("Successfully connected to MCP server")
+            logger.info("Successfully connected to MCP server")
             return self.session
             
         except Exception as e:
-            self.logger.error(f"Failed to connect to MCP server: {e}")
+            logger.error(f"Failed to connect to MCP server: {e}")
             await self.disconnect()
             raise
     
@@ -61,13 +62,13 @@ class MCPStdioClient(MCPClientInterface):
             if self.session:
                 await self.session.__aexit__(None, None, None)
         except Exception as e:
-            self.logger.error(f"Error closing session: {e}")
+            logger.error(f"Error closing session: {e}")
         
         try:
             if self.stdio_stream:
                 await self.stdio_stream.__aexit__(None, None, None)
         except Exception as e:
-            self.logger.error(f"Error closing streams: {e}")
+            logger.error(f"Error closing streams: {e}")
         
         self.session = None
         self.stdio_stream = None
@@ -75,7 +76,7 @@ class MCPStdioClient(MCPClientInterface):
         self.write_stream = None
         self.close_func = None
         self.is_connected = False
-        self.logger.info("Disconnected from MCP server")
+        logger.info("Disconnected from MCP server")
     
     async def list_tools(self) -> List[Tool]:
         """
@@ -89,5 +90,5 @@ class MCPStdioClient(MCPClientInterface):
             result = await self.session.list_tools()
             return result.tools if hasattr(result, 'tools') else []
         except Exception as e:
-            self.logger.error(f"Error listing tools: {e}")
+            logger.error(f"Error listing tools: {e}")
             raise
