@@ -1,8 +1,11 @@
 from .settings import MCP_SERVER_DIR
 
-MCP_SERVERS = {
-    "Medical Appointment System": {
-        "command": "uv",
+
+MCP_SERVERS = {}
+
+if MCP_SERVER_DIR:
+    MCP_SERVERS["Medical Appointment System"] = {
+        "command": "uav",
         "args": [
             "--directory",
             MCP_SERVER_DIR,
@@ -12,4 +15,3 @@ MCP_SERVERS = {
         "env": {},
         "description": "Medical appointment scheduling server"
     }
-}
