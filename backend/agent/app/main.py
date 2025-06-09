@@ -10,7 +10,6 @@ from .services.orchestrator import ChatOrchestrator
 from .services.llm_client import GeminiLLMClient
 from .services.mcp_client import MCPStdioClient
 from .configs.settings import GEMINI_API_KEY, DEFAULT_MODEL, SESSION_SECRET_KEY
-from .configs.mcp_server_config import MCP_SERVERS
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -18,6 +17,12 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+try:
+    from .configs.mcp_server_config import MCP_SERVERS
+except ImportError:
+    logger.warning("MCP server configuration file not found. Create 'mcp_server_config.py' from 'mcp_server_config.py.example' to enable MCP servers.")
+    MCP_SERVERS = {}
 
 
 @asynccontextmanager

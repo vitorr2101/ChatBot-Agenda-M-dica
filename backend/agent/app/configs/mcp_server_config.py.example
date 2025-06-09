@@ -1,0 +1,31 @@
+# MCP Server Configuration Examples
+# Copy this file to mcp_server_config.py and modify according to your needs
+
+from .settings import MCP_SERVER_DIR
+
+# Example MCP server configurations
+# Uncomment and modify the servers you want to use
+
+MCP_SERVERS = {}
+
+# Example 1: Medical Appointment System (using environment variable)
+# if MCP_SERVER_DIR:
+#     MCP_SERVERS["Medical Appointment System"] = {
+#         "command": "uv",
+#         "args": [
+#             "--directory",
+#             MCP_SERVER_DIR,
+#             "run",
+#             "server.py"
+#         ],
+#         "env": {},
+#         "description": "Medical appointment scheduling server"
+#     }
+
+# Example 2: Local Python MCP Server
+# MCP_SERVERS["local_python_server"] = {
+#     "command": "python",
+#     "args": ["/path/to/your/mcp/server.py"],
+#     "env": {},
+#     "description": "Local Python MCP server"
+# }
