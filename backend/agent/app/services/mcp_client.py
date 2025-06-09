@@ -46,9 +46,8 @@ class MCPStdioClient(MCPClientInterface):
             return self.session
             
         except Exception as e:
-            logger.error(f"Failed to connect to MCP server: {e}")
             await self.disconnect()
-            raise
+            raise RuntimeError(f"Failed to connect to MCP server: {e}")
     
     async def disconnect(self):
         """

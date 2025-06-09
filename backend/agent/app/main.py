@@ -10,7 +10,6 @@ from .services.orchestrator import ChatOrchestrator
 from .services.llm_client import GeminiLLMClient
 from .services.mcp_client import MCPStdioClient
 from .configs.settings import GEMINI_API_KEY, DEFAULT_MODEL, SESSION_SECRET_KEY
-from .configs.mcp_server_config import MCP_SERVERS
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -18,6 +17,12 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+try:
+    from .configs.mcp_server_config import MCP_SERVERS
+except ImportError:
+    logger.warning("MCP server configuration file not found. Create 'mcp_server_config.py' from 'mcp_server_config.py.example' to enable MCP servers.")
+    MCP_SERVERS = {}
 
 
 @asynccontextmanager
@@ -30,24 +35,42 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("Starting medical appointment chatbot backend...")
 
+
         app.state.llm_client = GeminiLLMClient(
             api_key=GEMINI_API_KEY, 
             model_name=DEFAULT_MODEL,
             max_retries=5
         )
 
-        app.state.mcp_client = MCPStdioClient(
-            StdioServerParameters(
-                command=MCP_SERVERS["Medical Appointment System"]["command"],
-                args=MCP_SERVERS["Medical Appointment System"]["args"],
-                env=MCP_SERVERS["Medical Appointment System"]["env"]
-            )
-        )
-        await app.state.mcp_client.connect()
+        app.state.mcp_client = None
+        mcp_tools = []
+        
+        try:
+            if not MCP_SERVERS:
+                logger.info("No MCP servers configured, skipping MCP client initialization")
+            elif "Medical Appointment System" not in MCP_SERVERS:
+                logger.warning("Medical Appointment System not found in MCP servers configuration")
+            else:
+                logger.info("Attempting to initialize MCP client...")
+                app.state.mcp_client = MCPStdioClient(
+                    StdioServerParameters(
+                        command=MCP_SERVERS["Medical Appointment System"]["command"],
+                        args=MCP_SERVERS["Medical Appointment System"]["args"],
+                        env=MCP_SERVERS["Medical Appointment System"]["env"]
+                    )
+                )
+                await app.state.mcp_client.connect()
+                mcp_tools = [app.state.mcp_client.session]
+                logger.info("MCP client initialized successfully")
+            
+        except Exception as mcp_error:
+            logger.warning(mcp_error)
+            logger.warning("Application will continue without MCP tools")
+            app.state.mcp_client = None
 
         app.state.orchestrator = ChatOrchestrator(
             llm_client=app.state.llm_client,
-            tools=[app.state.mcp_client.session],
+            tools=mcp_tools,
         )
 
         logger.info("Application startup completed")
@@ -60,9 +83,12 @@ async def lifespan(app: FastAPI):
     finally:
         logger.info("Shutting down application...")
 
-        if hasattr(app.state, 'mcp_client'):
-            await app.state.mcp_client.disconnect()
-            logger.info("Disconnected from MCP client")
+        if hasattr(app.state, 'mcp_client') and app.state.mcp_client:
+            try:
+                await app.state.mcp_client.disconnect()
+                logger.info("Disconnected from MCP client")
+            except Exception as disconnect_error:
+                logger.warning(f"Error disconnecting MCP client: {disconnect_error}")
 
         logger.info("Application shutdown completed")
         

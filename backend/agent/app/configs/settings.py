@@ -44,7 +44,7 @@ def load_prompt(prompt_name: str) -> str:
     return prompt_path.read_text(encoding='utf-8').strip()
 
 GEMINI_API_KEY = get_required_env("GEMINI_API_KEY")
-MCP_SERVER_DIR = get_required_env("MCP_SERVER_DIR")
+MCP_SERVER_DIR = os.getenv("MCP_SERVER_DIR")  
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", secrets.token_urlsafe(32))
 SYSTEM_INSTRUCTION = load_prompt('system_instruction.md')
