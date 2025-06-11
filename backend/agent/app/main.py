@@ -53,8 +53,8 @@ async def lifespan(app: FastAPI):
 
         app.state.orchestrator = ChatOrchestrator(
             llm_client=app.state.llm_client,
-            tools=[mcp_tools],
-        ) # dentro de tools era app.state.mcp_client.session
+            tools=[app.state.mcp_client.session],
+        )
 
         logger.info("Application startup completed")
 
