@@ -42,36 +42,19 @@ async def lifespan(app: FastAPI):
             max_retries=5
         )
 
-        app.state.mcp_client = None
-        mcp_tools = []
-        
-        try:
-            if not MCP_SERVERS:
-                logger.info("No MCP servers configured, skipping MCP client initialization")
-            elif "Medical Appointment System" not in MCP_SERVERS:
-                logger.warning("Medical Appointment System not found in MCP servers configuration")
-            else:
-                logger.info("Attempting to initialize MCP client...")
-                app.state.mcp_client = MCPStdioClient(
-                    StdioServerParameters(
-                        command=MCP_SERVERS["Medical Appointment System"]["command"],
-                        args=MCP_SERVERS["Medical Appointment System"]["args"],
-                        env=MCP_SERVERS["Medical Appointment System"]["env"]
-                    )
-                )
-                await app.state.mcp_client.connect()
-                mcp_tools = [app.state.mcp_client.session]
-                logger.info("MCP client initialized successfully")
-            
-        except Exception as mcp_error:
-            logger.warning(mcp_error)
-            logger.warning("Application will continue without MCP tools")
-            app.state.mcp_client = None
+        app.state.mcp_client = MCPStdioClient(
+            StdioServerParameters(
+                command=MCP_SERVERS["Medical Appointment System"]["command"],
+                args=MCP_SERVERS["Medical Appointment System"]["args"],
+                env=MCP_SERVERS["Medical Appointment System"]["env"]
+            )
+        )
+        await app.state.mcp_client.connect()
 
         app.state.orchestrator = ChatOrchestrator(
             llm_client=app.state.llm_client,
-            tools=mcp_tools,
-        )
+            tools=[mcp_tools],
+        ) # dentro de tools era app.state.mcp_client.session
 
         logger.info("Application startup completed")
 
@@ -126,5 +109,5 @@ app.include_router(status.router, prefix="/api/v1/status", tags=["status"])
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-    logger.info("FastAPI server started at http://localhost:8000")
+    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
+    logger.info("FastAPI server started at http://localhost:5000") 
