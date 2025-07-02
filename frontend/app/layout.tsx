@@ -1,17 +1,24 @@
 import "./globals.css";
-import { GeistSans } from "geist/font/sans";
+import { Inter, Nunito_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/navbar";
+import { ThemeProvider } from "@/components/theme-provider";
+
+const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
+const fontDisplay = Nunito_Sans({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
 export const metadata = {
-  title: "AI SDK Python Streaming Preview",
+  title: "Assistente de Agendamento Médico",
   description:
-    "Use the Data Stream Protocol to stream chat completions from a Python endpoint (FastAPI) and display them using the useChat hook in your Next.js application.",
+    "Use o assistente virtual para agendar consultas e exames de forma rápida e fácil.",
   openGraph: {
     images: [
       {
-        url: "/og?title=AI SDK Python Streaming Preview",
+        url: "/og?title=Assistente de Agendamento Médico",
       },
     ],
   },
@@ -19,7 +26,7 @@ export const metadata = {
     card: "summary_large_image",
     images: [
       {
-        url: "/og?title=AI SDK Python Streaming Preview",
+        url: "/og?title=Assistente de Agendamento Médico",
       },
     ],
   },
@@ -31,12 +38,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head></head>
-      <body className={cn(GeistSans.className, "antialiased dark")}>
-        <Toaster position="top-center" richColors />
-        <Navbar />
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          fontSans.variable,
+          fontDisplay.variable,
+          "font-sans antialiased",
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

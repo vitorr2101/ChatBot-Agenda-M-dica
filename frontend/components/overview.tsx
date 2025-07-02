@@ -1,8 +1,6 @@
 import { motion } from "framer-motion";
-import Link from "next/link";
 
-import { MessageIcon } from "./icons";
-import { LogoPython } from "@/app/icons";
+import { Icons } from "@/components/icons";
 
 export const Overview = () => {
   return (
@@ -14,51 +12,24 @@ export const Overview = () => {
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ delay: 0.5 }}
     >
-      <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-        <p className="flex flex-row justify-center gap-4 items-center">
-          <LogoPython size={32} />
-          <span>+</span>
-          <MessageIcon size={32} />
+      <div className="text-center rounded-lg p-10 flex flex-col items-center">
+        <div className="mb-4">
+          <Icons.logo className="w-16 h-16 text-primary" />
+        </div>
+        <h1
+          className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+        >
+          Ampla Saúde
+        </h1>
+        <p className="text-lg text-foreground mt-6 max-w-md leading-relaxed">
+          Cuidar da sua saúde ficou mais simples.
         </p>
-        <p>
-          This is an{" "}
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://github.com/vercel-labs/ai-sdk-preview-python-streaming"
-            target="_blank"
-          >
-            open source
-          </Link>{" "}
-          template that demonstrates the usage of{" "}
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol#data-stream-protocol"
-            target="_blank"
-          >
-            Data Stream Protocol
-          </Link>{" "}
-          to stream chat completions from a Python function (
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://fastapi.tiangolo.com"
-            target="_blank"
-          >
-            FastAPI
-          </Link>
-          ) along with the
-          <code className="rounded-md bg-muted px-1 py-0.5">useChat</code> hook
-          on the client to create a seamless chat experience.
+        <p className="text-base text-muted-foreground mt-2 max-w-md leading-relaxed">
+          Olá! Sou sua assistente virtual da Ampla Saúde. Estou aqui para te ajudar
+          a agendar consultas e exames com todo o conforto e segurança.
         </p>
-        <p>
-          You can learn more about the AI SDK by visiting the{" "}
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://sdk.vercel.ai/docs"
-            target="_blank"
-          >
-            docs
-          </Link>
-          .
+        <p className="text-base font-medium text-foreground mt-8">
+          O que você gostaria de fazer hoje?
         </p>
       </div>
     </motion.div>

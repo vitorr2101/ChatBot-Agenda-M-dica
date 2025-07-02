@@ -2,12 +2,11 @@
 
 import type { Message } from "ai";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 import { SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
-import { PreviewAttachment } from "./preview-attachment";
 import { cn } from "@/lib/utils";
-import { Weather } from "./weather";
 
 export const PreviewMessage = ({
   message,
@@ -16,6 +15,33 @@ export const PreviewMessage = ({
   message: Message;
   isLoading: boolean;
 }) => {
+  const [displayedContent, setDisplayedContent] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+
+  useEffect(() => {
+    if (message.role === "assistant" && message.content) {
+      let charIndex = 0;
+      setDisplayedContent(""); // Reset content when a new message arrives
+      setIsTyping(true);
+
+      const intervalId = setInterval(() => {
+        if (charIndex < message.content.length) {
+          setDisplayedContent((prev) => prev + message.content[charIndex]);
+          charIndex++;
+        } else {
+          clearInterval(intervalId);
+          setIsTyping(false);
+        }
+      }, 20); // Adjust typing speed here (milliseconds)
+
+      return () => clearInterval(intervalId);
+    } else {
+      // For user messages, display immediately
+      setDisplayedContent(message.content);
+      setIsTyping(false);
+    }
+  }, [message.content, message.role]);
+
   return (
     <motion.div
       className="w-full mx-auto max-w-3xl px-4 group/message"
@@ -37,50 +63,7 @@ export const PreviewMessage = ({
         <div className="flex flex-col gap-2 w-full">
           {message.content && (
             <div className="flex flex-col gap-4">
-              <Markdown>{message.content as string}</Markdown>
-            </div>
-          )}
-
-          {message.toolInvocations && message.toolInvocations.length > 0 && (
-            <div className="flex flex-col gap-4">
-              {message.toolInvocations.map((toolInvocation) => {
-                const { toolName, toolCallId, state } = toolInvocation;
-
-                if (state === "result") {
-                  const { result } = toolInvocation;
-
-                  return (
-                    <div key={toolCallId}>
-                      {toolName === "get_current_weather" ? (
-                        <Weather weatherAtLocation={result} />
-                      ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={toolCallId}
-                    className={cn({
-                      skeleton: ["get_current_weather"].includes(toolName),
-                    })}
-                  >
-                    {toolName === "get_current_weather" ? <Weather /> : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {message.experimental_attachments && (
-            <div className="flex flex-row gap-2">
-              {message.experimental_attachments.map((attachment) => (
-                <PreviewAttachment
-                  key={attachment.url}
-                  attachment={attachment}
-                />
-              ))}
+              <Markdown>{displayedContent}</Markdown>
             </div>
           )}
         </div>

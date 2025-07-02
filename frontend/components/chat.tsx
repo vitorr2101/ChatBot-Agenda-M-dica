@@ -6,6 +6,7 @@ import { Overview } from "@/components/overview";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Chat() {
   const chatId = "001";
@@ -22,7 +23,7 @@ export function Chat() {
     setIsLoading(true);
     setInput("");
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/v1/chat", {
+      const res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage.content }),
@@ -48,29 +49,33 @@ export function Chat() {
   // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, messagesEndRef]);
 
   return (
-    <div className="flex flex-col min-w-0 h-[calc(100dvh-52px)] bg-background">
+    <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div
         ref={messagesContainerRef}
-        className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
+        className="flex flex-col min-w-0 flex-1 overflow-y-scroll pt-4 px-4"
       >
-        {messages.length === 0 && <Overview />}
+        <div className="mx-auto w-full md:max-w-3xl space-y-6">
+          {messages.length === 0 && <Overview />}
 
-        {messages.map((message, index) => (
-          <PreviewMessage
-            key={message.id}
-            chatId={chatId}
-            message={message}
-            isLoading={isLoading && messages.length - 1 === index}
-          />
-        ))}
+          {messages.map((message, index) => (
+            <PreviewMessage
+              key={message.id}
+              chatId={chatId}
+              message={message}
+              isLoading={isLoading && messages.length - 1 === index}
+            />
+          ))}
 
-        {isLoading &&
-          messages.length > 0 &&
-          messages[messages.length - 1].role === "user" && <ThinkingMessage />}
-
+          {isLoading &&
+            messages.length > 0 &&
+            messages[messages.length - 1].role === "user" && <ThinkingMessage />}
+        </div>
         <div
           ref={messagesEndRef}
           className="shrink-0 min-w-[24px] min-h-[24px]"

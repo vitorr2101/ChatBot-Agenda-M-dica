@@ -21,14 +21,24 @@ import { Textarea } from "./ui/textarea";
 
 const suggestedActions = [
   {
-    title: "What is the weather",
-    label: "in San Francisco?",
-    action: "What is the weather in San Francisco?",
+    title: "Agendar uma consulta",
+    label: "com um clínico geral.",
+    action: "Gostaria de agendar uma consulta com um clínico geral.",
   },
   {
-    title: "How is python useful",
-    label: "for AI engineers?",
-    action: "How is python useful for AI engineers?",
+    title: "Verificar resultados de exames",
+    label: "de sangue e imagem.",
+    action: "Gostaria de verificar os resultados dos meus últimos exames.",
+  },
+  {
+    title: "Especialidades médicas",
+    label: "disponíveis na clínica.",
+    action: "Quais são as especialidades médicas disponíveis na clínica?",
+  },
+  {
+    title: "Cancelar ou remarcar",
+    label: "um agendamento.",
+    action: "Preciso cancelar ou remarcar um agendamento.",
   },
 ];
 
@@ -130,10 +140,9 @@ export function MultimodalInput({
               <Button
                 variant="ghost"
                 onClick={async () => {
-                  append({
-                    role: "user",
-                    content: suggestedAction.action,
-                  });
+                  setInput(suggestedAction.action);
+                  // A short delay to allow the state to update before submitting
+                  setTimeout(() => submitForm(), 100);
                 }}
                 className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
               >
