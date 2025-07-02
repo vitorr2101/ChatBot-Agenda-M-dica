@@ -3,13 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "fastapi-dev": "cd ../backend/agent && uv run python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
-    "next-dev": "next dev",
-    "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
+    "dev": "pnpm dev:pip",
+    "dev:uv": "concurrently \"pnpm:dev:frontend\" \"pnpm:dev:backend:uv\"",
+    "dev:pip": "concurrently \"pnpm:dev:frontend\" \"pnpm:dev:backend:pip\"",
+    "dev:frontend": "next dev",
+    "dev:backend:uv": "cd ../backend/agent && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
+    "dev:backend:pip": "cd ../backend/agent && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check": "depcheck"
+    "check:deps": "depcheck",
+    "install:backend": "pnpm install:backend:pip",
+    "install:backend:uv": "cd ../backend/agent && uv sync",
+    "install:backend:pip": "pip install -r ../backend/agent/requirements.txt"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
