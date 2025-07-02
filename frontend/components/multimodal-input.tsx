@@ -97,13 +97,10 @@ export function MultimodalInput({
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || "";
       setInput(finalValue);
       adjustHeight();
     }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -141,7 +138,6 @@ export function MultimodalInput({
                 variant="ghost"
                 onClick={async () => {
                   setInput(suggestedAction.action);
-                  // A short delay to allow the state to update before submitting
                   setTimeout(() => submitForm(), 100);
                 }}
                 className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"

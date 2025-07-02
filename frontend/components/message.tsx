@@ -2,9 +2,9 @@
 
 import type { Message } from "ai";
 import { motion } from "framer-motion";
+import { HeartPulse } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ export const PreviewMessage = ({
   useEffect(() => {
     if (message.role === "assistant" && message.content) {
       let charIndex = 0;
-      setDisplayedContent(""); // Reset content when a new message arrives
+      setDisplayedContent("");
       setIsTyping(true);
 
       const intervalId = setInterval(() => {
@@ -32,11 +32,10 @@ export const PreviewMessage = ({
           clearInterval(intervalId);
           setIsTyping(false);
         }
-      }, 20); // Adjust typing speed here (milliseconds)
+      }, 15);
 
       return () => clearInterval(intervalId);
     } else {
-      // For user messages, display immediately
       setDisplayedContent(message.content);
       setIsTyping(false);
     }
@@ -56,7 +55,7 @@ export const PreviewMessage = ({
       >
         {message.role === "assistant" && (
           <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-            <SparklesIcon size={14} />
+            <HeartPulse size={14} />
           </div>
         )}
 
@@ -91,7 +90,7 @@ export const ThinkingMessage = () => {
         )}
       >
         <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
+          <HeartPulse size={14} className="animate-pulse" />
         </div>
 
         <div className="flex flex-col gap-2 w-full">

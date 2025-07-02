@@ -46,7 +46,6 @@ export function Chat() {
     }
   };
 
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, messagesEndRef]);
@@ -92,7 +91,6 @@ export function Chat() {
             chatRequestOptions?: any
           ) => {
             if (event && event.preventDefault) event.preventDefault();
-            // Optionally, you can adapt handleSubmit to accept these params if needed
             handleSubmit({ preventDefault: () => {} } as React.FormEvent<HTMLFormElement>);
           }}
           isLoading={isLoading}

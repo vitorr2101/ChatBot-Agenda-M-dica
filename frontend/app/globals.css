@@ -4,70 +4,48 @@
 
 @layer base {
   :root {
-    --background: 206 25% 97%; /* #F4F7F9 */
-    --foreground: 215 28% 17%; /* #1E293B */
-    --card: 0 0% 100%; /* #FFFFFF */
-    --card-foreground: 215 28% 17%; /* #1E293B */
-    --popover: 0 0% 100%; /* #FFFFFF */
-    --popover-foreground: 215 28% 17%; /* #1E293B */
-    --primary: 215 54% 39%; /* #2D5B9A */
-    --primary-foreground: 0 0% 100%; /* #FFFFFF */
-    --secondary: 210 20% 97%; /* Similar to background */
-    --secondary-foreground: 215 19% 47%; /* #64748B */
+    --background: 206 25% 97%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 215 54% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 97%;
+    --secondary-foreground: 215 19% 47%;
     --muted: 210 20% 97%;
-    --muted-foreground: 215 19% 47%; /* #64748B */
-    --accent: 173 80% 40%; /* #14B8A6 */
-    --accent-foreground: 0 0% 100%; /* #FFFFFF */
-    --destructive: 0 84% 60%; /* #EF4444 */
+    --muted-foreground: 215 19% 47%;
+    --accent: 173 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 210 14% 83%; /* #CBD5E1 */
+    --border: 210 14% 83%;
     --input: 210 14% 83%;
     --ring: 215 54% 39%;
-    --radius: 1rem; /* 16px */
+    --radius: 1rem;
   }
 
   .dark {
-    /* FUNDO E SUPERFÍCIES */
-    /* Base azul-escuro, mais confortável que o preto puro e alinhado à marca. */
-    --background: 222 47% 11%; /* #0F172A */
-    /* Texto principal, um branco suave para não cansar a vista. */
-    --foreground: 210 40% 96%; /* #F1F5F9 */
-    /* Cards e popovers um pouco mais claros que o fundo para criar profundidade. */
-    --card: 222 47% 14%; /* #162033 */
-    --card-foreground: 210 40% 96%; /* #F1F5F9 */
-    --popover: 222 47% 14%; /* #162033 */
-    --popover-foreground: 210 40% 96%; /* #F1F5F9 */
-
-    /* BOTÕES E ACENTOS */
-    /* Nosso azul 'marca', em uma versão mais clara e vibrante para funcionar como botão no modo escuro. */
-    --primary: 217 91% 60%; /* #528BFF */
-    /* Texto escuro para alto contraste no botão primário. */
-    --primary-foreground: 222 47% 11%; /* #0F172A */
-
-    /* Nosso verde-água 'ação' da paleta light, que se destaca perfeitamente no fundo escuro. */
-    --accent: 170 80% 45%; /* #14B8A6 */
-    /* Texto escuro para consistência e legibilidade no botão de destaque. */
-    --accent-foreground: 222 47% 11%; /* #0F172A */
-
-    /* DESTRUTIVO (ERRO) */
-    /* Vermelho vivo para alertas e ações de exclusão. */
-    --destructive: 0 84% 60%; /* #EF4444 */
-    --destructive-foreground: 210 40% 98%; /* #FAFAFA */
-
-    /* ELEMENTOS DE UI (BORDAS, INPUTS) */
-    /* Um tom sutilmente mais claro que os cards para definir bordas visíveis. */
-    --border: 217 33% 20%; /* #212B40 */
-    --input: 217 33% 20%; /* #212B40 */
-    /* Anel de foco usando a cor primária vibrante para máxima acessibilidade. */
-    --ring: 217 91% 60%; /* #528BFF */
-
-    /* TEXTOS SECUNDÁRIOS (MUTED) */
-    --muted: 217 33% 20%; /* #212B40 */
-    --muted-foreground: 215 20% 65%; /* #94A3B8 */
-
-    /* Componentes secundários (não usados ativamente em nosso design, mas definidos para completude) */
-    --secondary: 217 33% 20%; /* #212B40 */
-    --secondary-foreground: 210 40% 96%; /* #F1F5F9 */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --accent: 170 80% 45%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 217 91% 60%;
+    --muted: 217 33% 20%;
+    --muted-foreground: 215 20% 65%;
+    --secondary: 217 33% 20%;
+    --secondary-foreground: 210 40% 96%;
   }
 
   * {
