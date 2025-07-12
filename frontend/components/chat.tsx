@@ -15,20 +15,73 @@ export function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
 
+  const [isClient, setIsClient] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    const userMessage = { id: Date.now(), role: "user", content: input };
+  e.preventDefault();
+  if (!input.trim()) return;
+
+  const userMessage = { id: Date.now(), role: "user", content: input };
+  setMessages((prev) => [...prev, userMessage]);
+  setIsLoading(true);
+  setInput("");
+
+  try {
+    // A única mudança é na linha 'body' abaixo
+    const res = await fetch("http://127.0.0.1:8000/api/v1/chat/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: [userMessage] }),
+    });
+
+    if (!res.ok) {
+        const errorBody = await res.text();
+        console.error("Falha na API:", res.status, errorBody);
+        throw new Error("Failed to send message");
+    }
+
+    // Como o backend agora retorna PlainText, precisamos ler a resposta assim
+    
+    const responseText = await res.text();
+    console.log("Resposta do backend:", responseText);
+    console.log("Resposta do backend:", res);
+    const botMessage = {
+      id: Date.now() + 1,
+      role: "assistant",
+      content: responseText, // <-- Usar o texto da resposta
+    };
+    setMessages((prev) => [...prev, botMessage]);
+
+  } catch (error: any) {
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now() + 2, role: "assistant", content: "Desculpe, ocorreu um erro." },
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+  const handleFileSubmit = async (file: File) => {
+    const userMessage = {
+      id: Date.now(),
+      role: "user",
+      content: "Analisando imagem...",
+      imageUrl: URL.createObjectURL(file) 
+    };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-    setInput("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+      const res = await fetch("http://127.0.0.1:8000/api/v1/chat/upload-document", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage.content }),
+        body: formData,
       });
-      if (!res.ok) throw new Error("Failed to send message");
+
+      if (!res.ok) throw new Error("Failed to upload file");
+
       const data = await res.json();
       const botMessage = {
         id: Date.now() + 1,
@@ -36,11 +89,11 @@ export function Chat() {
         content: data.response,
       };
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error: any) {
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now() + 2, role: "assistant", content: "Erro ao enviar mensagem." },
-      ]);
+
+    } catch (error) {
+      setMessages(prev => prev.map(m => 
+          m.id === userMessage.id ? { ...m, content: "Erro ao analisar imagem." } : m
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +103,14 @@ export function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, messagesEndRef]);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        {isClient && <ThemeToggle />}
       </div>
       <div
         ref={messagesContainerRef}
@@ -101,6 +158,7 @@ export function Chat() {
             setMessages((prev) => [...prev, msg]);
             return null;
           }}
+          onFileSelect={handleFileSubmit}
         />
       </form>
     </div>

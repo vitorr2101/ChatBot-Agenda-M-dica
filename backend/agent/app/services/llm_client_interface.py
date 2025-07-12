@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 class LLMClientInterface(ABC):
     """
@@ -45,17 +45,18 @@ class LLMClientInterface(ABC):
     async def send_message(
         self,
         chat_session: Any,
-        message: str,
+        message_parts: List,
         temperature: Optional[float] = 0.1,
         max_output_tokens: Optional[int] = None,
         tools: Optional[list] = None
     ) -> str:
         """
         Send a message to the LLM using the provided chat session.
+        The message can be composed of multiple parts (text, image).
 
         Args:
             chat_session: The active chat session.
-            message: The user message to send.
+            message_parts: A list containing message content (e.g., [text, image_data]).
             temperature: Optional creativity/randomness for the response (0.0 to 1.0).
             max_output_tokens: Optional maximum number of tokens in the response.
             tools: Optional list of tools/sessions for function calling.

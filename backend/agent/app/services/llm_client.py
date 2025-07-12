@@ -2,7 +2,7 @@ from app.configs.settings import SYSTEM_INSTRUCTION
 from google import genai
 from google.genai import types
 import google.api_core.exceptions as core_exceptions
-from typing import Optional, Any
+from typing import Optional, Any, List
 import asyncio
 import random
 import logging
@@ -98,20 +98,21 @@ class GeminiLLMClient(LLMClientInterface):
     async def send_message(
         self, 
         chat_session: Any, 
-        message: str,
+        message_parts: List,
         temperature: Optional[float] = 0.1,
         max_output_tokens: Optional[int] = None,
         tools: Optional[list] = None
     ) -> str:
         """
         Send a message using the provided chat session.
+        The message can be composed of multiple parts (text, image).
 
         Args:
             chat_session: The active chat session.
-            message: User message to send.
-            temperature: Optional response creativity (0.0 to 1.0). Defaults to 0.1.
+            message_parts: A list containing message content (e.g., [text, image_data]).
+            temperature: Optional response creativity (0.0 to 1.0).
             max_output_tokens: Optional maximum number of tokens in the response.
-            tools: Optional list of tools/sessions for function calling.
+            tools: Optional list of tools for function calling.
 
         Returns:
             str: LLM response text.
@@ -131,15 +132,18 @@ class GeminiLLMClient(LLMClientInterface):
         generation_config = types.GenerateContentConfig(**config_params) if config_params else None
 
         async def _send_request():
+            # A mudança principal está aqui: enviamos 'message_parts' diretamente.
             response = await chat_session.send_message(
-                message,
+                message_parts,
                 config=generation_config
             )
             return response.text
-
+        
         try:
             return await self._retry_with_exponential_backoff(_send_request)
         except core_exceptions.ServiceUnavailable as e:
             return f"Service unavailable after {self.max_retries} retries: {e.message if hasattr(e, 'message') else str(e)}"
         except Exception as e:
+            # É uma boa prática logar o erro aqui também
+            logger.error(f"Error during send_message to Gemini: {e}")
             return f"Error sending message: {str(e)}"

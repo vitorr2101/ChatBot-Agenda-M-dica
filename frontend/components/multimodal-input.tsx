@@ -15,7 +15,7 @@ import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import { cn, sanitizeUIMessages } from "@/lib/utils";
 
-import { ArrowUpIcon, StopIcon } from "./icons";
+import { ArrowUpIcon, StopIcon, PaperclipIcon } from "./icons";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
@@ -53,6 +53,7 @@ export function MultimodalInput({
   append,
   handleSubmit,
   className,
+  onFileSelect,
 }: {
   chatId: string;
   input: string;
@@ -72,8 +73,13 @@ export function MultimodalInput({
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
   className?: string;
+  // --- CORREÇÃO AQUI ---
+  onFileSelect: (file: File) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { width } = useWindowSize();
 
   useEffect(() => {
@@ -121,6 +127,14 @@ export function MultimodalInput({
     }
   }, [handleSubmit, setLocalStorageInput, width]);
 
+  // Nova função para lidar com a seleção de arquivos
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            onFileSelect(file); // <-- Chamando a função recebida
+        }
+    };
+
   return (
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 && (
@@ -151,6 +165,28 @@ export function MultimodalInput({
           ))}
         </div>
       )}
+
+      {/* Container para o Textarea e botões */}
+      <div className="relative flex items-center">
+        {/* Botão de Anexo */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isLoading}
+        >
+          <PaperclipIcon size={16} />
+          <span className="sr-only">Anexar arquivo</span>
+        </Button>
+
+        {/* Input de arquivo oculto */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleFileChange}
+        />
 
       <Textarea
         ref={textareaRef}
@@ -198,7 +234,9 @@ export function MultimodalInput({
         >
           <ArrowUpIcon size={14} />
         </Button>
+        
       )}
     </div>
+  </div>
   );
 }
