@@ -2,11 +2,11 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp import ClientSession
 from mcp.types import Tool
 from typing import Optional, List
-import logging
 
 from .mcp_client_interface import MCPClientInterface
+from app.configs.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MCPStdioClient(MCPClientInterface):
@@ -27,7 +27,7 @@ class MCPStdioClient(MCPClientInterface):
         Connect to the MCP server and initialize the session.
         """
 
-        if self.is_connected:
+        if self.is_connected and self.session:
             logger.warning("Already connected to MCP server")
             return self.session
         
@@ -82,7 +82,7 @@ class MCPStdioClient(MCPClientInterface):
         List available tools.
         """
 
-        if not self.is_connected:
+        if not self.is_connected or self.session is None:
             raise RuntimeError("Not connected to MCP server")
         
         try:

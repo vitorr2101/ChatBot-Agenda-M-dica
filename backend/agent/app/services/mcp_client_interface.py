@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from mcp import ClientSession
 from mcp.types import Tool
-from typing import List
+from typing import List, Optional, Any
 
 
 class MCPClientInterface(ABC):
@@ -42,3 +42,6 @@ class MCPClientInterface(ABC):
             Exception: If listing tools fails.
         """
         pass
+
+    is_connected: bool
+    session: Optional[ClientSession]
