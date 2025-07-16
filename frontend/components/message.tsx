@@ -66,6 +66,7 @@ export const PreviewMessage = ({
                   }}
                   isUploading={false}
                   showRemoveButton={false}
+                  nameTextColor="text-accent-foreground"
                 />
               ))}
             </div>

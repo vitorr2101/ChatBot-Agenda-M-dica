@@ -1,17 +1,20 @@
 import type { Attachment } from "ai";
 
 import { LoaderIcon, TrashIcon } from "./icons";
+import { cn } from "@/lib/utils";
 
 export const PreviewAttachment = ({
   attachment,
   isUploading = false,
   onRemove,
   showRemoveButton = false,
+  nameTextColor = "text-muted-foreground",
 }: {
   attachment: Attachment;
   isUploading?: boolean;
   onRemove?: () => void;
   showRemoveButton?: boolean;
+  nameTextColor?: string;
 }) => {
   const { name, url, contentType } = attachment;
   const isImage = contentType?.startsWith("image");
@@ -19,7 +22,7 @@ export const PreviewAttachment = ({
 
   return (
     <div className="flex flex-col gap-2 relative group">
-      <div className="w-20 aspect-video bg-muted rounded-md relative flex flex-col items-center justify-center overflow-visible p-3">
+      <div className="w-20 aspect-video bg-muted rounded-md relative flex flex-col items-center justify-center overflow-hidden">
         {contentType ? (
           isImage ? (
             // NOTE: it is recommended to use next/image for images
@@ -28,7 +31,7 @@ export const PreviewAttachment = ({
               key={url}
               src={url}
               alt={name ?? "An image attachment"}
-              className="rounded-md size-full object-cover"
+              className="size-full object-cover rounded-md"
             />
           ) : isPDF ? (
             <svg className="w-8 h-8 text-primary" fill="currentColor" viewBox="0 0 20 20">
@@ -62,7 +65,7 @@ export const PreviewAttachment = ({
           </button>
         )}
       </div>
-      <div className="text-xs text-muted-foreground max-w-20 truncate text-center">{name}</div>
+      <div className={cn("text-xs max-w-20 truncate text-center", nameTextColor)}>{name}</div>
     </div>
   );
 };
