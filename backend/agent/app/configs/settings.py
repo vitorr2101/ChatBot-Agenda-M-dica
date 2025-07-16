@@ -2,6 +2,9 @@ from dotenv import load_dotenv
 import os
 import secrets
 from pathlib import Path
+from string import Template
+from typing import Dict, Any, Optional
+from datetime import datetime
 
 load_dotenv()
 
@@ -24,29 +27,57 @@ def get_required_env(key: str) -> str:
         raise ValueError(f"Required environment variable '{key}' is not set")
     return value
 
-def load_prompt(prompt_name: str) -> str:
+def load_prompt(prompt_name: str, template_vars: Optional[Dict[str, Any]] = None) -> str:
     """
-    Load a prompt file from the prompts directory.
+    Load a prompt file from the prompts directory with template support.
     
     Args:
         prompt_name: Name of the prompt file (e.g., 'system_instruction.md').
+        template_vars: Dictionary of variables to substitute in the template.
         
     Returns:
-        Contents of the prompt file with whitespace stripped.
+        Contents of the prompt file with variables substituted and whitespace stripped.
         
     Raises:
         FileNotFoundError: If the prompt file does not exist.
+        KeyError: If a template variable is missing.
     """
-
     current_file = Path(__file__).resolve()
     prompts_dir = current_file.parent.parent / 'prompts'
     prompt_path = prompts_dir / prompt_name
-    return prompt_path.read_text(encoding='utf-8').strip()
+    
+    content = prompt_path.read_text(encoding='utf-8').strip()
+    
+    if template_vars:
+        template = Template(content)
+        try:
+            content = template.substitute(template_vars)
+        except KeyError as e:
+            raise KeyError(f"Missing template variable: {e}")
+    
+    return content
+
+
+def get_default_template_vars() -> Dict[str, Any]:
+    """
+    Get default template variables for system instructions.
+    
+    Returns:
+        Dictionary with default template variables.
+    """
+    return {
+        'current_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
 
 GEMINI_API_KEY = get_required_env("GEMINI_API_KEY")
 MCP_SERVER_DIR = os.getenv("MCP_SERVER_DIR")  
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-1.5-flash")
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", secrets.token_urlsafe(32))
-SYSTEM_INSTRUCTION = load_prompt('system_instruction.md')
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "8000"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+SYSTEM_INSTRUCTION = load_prompt('system_instruction.md', get_default_template_vars())
 
 
