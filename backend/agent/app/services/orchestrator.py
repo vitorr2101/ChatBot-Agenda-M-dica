@@ -1,22 +1,19 @@
 from google.genai import types
+from mcp import ClientSession
+from fastapi import UploadFile
 from typing import Optional, List, Any
-import logging
-
-import base64
-import re
-from app.schemas.chat import Message 
 
 from .llm_client_interface import LLMClientInterface
-from app.prompts.ocr_prompts import MEDICAL_DOCUMENT_ANALYSIS_PROMPT
+from app.configs.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class ChatOrchestrator:
     """
     Orchestrates interactions between LLM and MCP clients for chat sessions.
     """
     
-    def __init__(self, llm_client: LLMClientInterface, tools: Optional[List[types.Tool]] = None):
+    def __init__(self, llm_client: LLMClientInterface, tools: Optional[List[ClientSession]] = None):
         """
         Initialize the orchestrator with injected dependencies.
         
@@ -54,79 +51,47 @@ class ChatOrchestrator:
     async def process_message(
         self,
         chat_session: Any,
-        last_message: Message,
+        content: List,
         temperature: Optional[float] = 0.1,
         max_output_tokens: Optional[int] = None
-    ) -> str:
+    ) -> Optional[str]:
         """
-        Processa uma mensagem baseada em texto (pode conter uma imagem em base64 no campo 'data').
-        Este método é chamado pelo endpoint principal de chat.
+        Processa uma mensagem que pode conter múltiplas partes (texto, imagem).
         
         Args:
             chat_session: A sessão de chat ativa para usar.
-            last_message: O último objeto de mensagem do usuário.
+            content: Uma lista de partes da mensagem (ex: texto, dados de imagem).
             temperature: Criatividade da resposta (0.0 a 1.0).
             max_output_tokens: Máximo de tokens na resposta.
             
         Returns:
-            A resposta do LLM.
+            A resposta do LLM ou None em caso de erro.
         """
         try:
-            message_parts = [last_message.content]
-
-            if last_message.data and "imageUrl" in last_message.data:
-                data_url = last_message.data["imageUrl"]
-                logger.info("Dados de imagem encontrados em base64, processando...")
-                try:
-                    match = re.match(r'data:(image\/\w+);base64,(.*)', data_url)
-                    if not match:
-                        raise ValueError("Formato de Data URL da imagem inválido")
-                    
-                    mime_type, base64_data = match.groups()
-                    image_bytes = base64.b64decode(base64_data)
-
-                    image_part = {"mime_type": mime_type, "data": image_bytes}
-                    message_parts.append(image_part)
-                    
-                except Exception as e:
-                    logger.error(f"Erro ao processar imagem em base64: {e}")
-                    return "Desculpe, não consegui ler o arquivo de imagem que você enviou. Poderia tentar novamente?"
-
             response = await self.llm_client.send_message(
                 chat_session=chat_session,
-                message_parts=message_parts,
+                content=content,
                 temperature=temperature,
                 max_output_tokens=max_output_tokens,
                 tools=self.tools
             )
             
-            logger.info(f"User message: {last_message.content} | LLM Response: {response}")
+            # O log agora mostra o conteúdo da lista
+            logger.info(f"User content: {content[0]} | LLM Response: {response}")
             return response
             
         except Exception as e:
             logger.error(f"Erro em process_message: {e}")
-            return f"Desculpe, encontrei um erro: {str(e)}"
-        
-    async def process_image_upload(self, chat_session: Any, file_bytes: bytes, mime_type: str) -> str:
-        """
-        Processa uma imagem enviada diretamente como bytes.
-        """
-        from app.prompts.ocr_prompts import MEDICAL_DOCUMENT_ANALYSIS_PROMPT # Supondo que você tenha este arquivo
-
-        if isinstance(MEDICAL_DOCUMENT_ANALYSIS_PROMPT, list):
-            prompt_text = "\n".join(MEDICAL_DOCUMENT_ANALYSIS_PROMPT)
-        else:
-            prompt_text = MEDICAL_DOCUMENT_ANALYSIS_PROMPT
-
+            return None
     
-        message_parts = [prompt_text,types.Part.from_bytes(
-            mime_type=mime_type,
-            data=file_bytes
-        )]
-
-
-        response = await self.llm_client.send_message(
-            chat_session=chat_session,
-            message_parts=message_parts
-        )
-        return response
+    async def format_file_part(self, file: UploadFile) -> types.Part:
+        """
+        Repassa a chamada de formatação de arquivo para o llm_client.
+        
+        Args:
+            file: O arquivo enviado via FastAPI.
+            
+        Returns:
+            types.Part: Objeto Part formatado para o Gemini SDK.
+        """
+        return await self.llm_client.format_file_part(file)
