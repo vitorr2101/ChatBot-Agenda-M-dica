@@ -3,9 +3,9 @@
 import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { MultimodalInput } from "@/components/multimodal-input";
 import { Overview } from "@/components/overview";
+import { PreviewAttachment } from "@/components/preview-attachment";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Chat() {
@@ -14,74 +14,63 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const [isClient, setIsClient] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!input.trim()) return;
+    e.preventDefault();
+    if (!input.trim() && selectedFiles.length === 0) return;
 
-  const userMessage = { id: Date.now(), role: "user", content: input };
-  setMessages((prev) => [...prev, userMessage]);
-  setIsLoading(true);
-  setInput("");
-
-  try {
-    // A única mudança é na linha 'body' abaixo
-    const res = await fetch("http://127.0.0.1:8000/api/v1/chat/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [userMessage] }),
-    });
-
-    if (!res.ok) {
-        const errorBody = await res.text();
-        console.error("Falha na API:", res.status, errorBody);
-        throw new Error("Failed to send message");
-    }
-
-    // Como o backend agora retorna PlainText, precisamos ler a resposta assim
+    // Criar mensagem do usuário - sem modificar o conteúdo da mensagem original
+    const userMessage = { 
+      id: Date.now(), 
+      role: "user", 
+      content: input,
+      files: selectedFiles.length > 0 ? selectedFiles.map(f => ({
+        name: f.name,
+        url: URL.createObjectURL(f)
+      })) : undefined
+    };
     
-    const responseText = await res.text();
-    console.log("Resposta do backend:", responseText);
-    console.log("Resposta do backend:", res);
-    const botMessage = {
-      id: Date.now() + 1,
-      role: "assistant",
-      content: responseText, // <-- Usar o texto da resposta
-    };
-    setMessages((prev) => [...prev, botMessage]);
-
-  } catch (error: any) {
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now() + 2, role: "assistant", content: "Desculpe, ocorreu um erro." },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-  const handleFileSubmit = async (file: File) => {
-    const userMessage = {
-      id: Date.now(),
-      role: "user",
-      content: "Analisando imagem...",
-      imageUrl: URL.createObjectURL(file) 
-    };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
+    
+    // Limpar campos após adicionar à lista de mensagens
+    const currentInput = input;
+    const currentFiles = [...selectedFiles];
+    setInput("");
+    setSelectedFiles([]);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/chat/upload-document", {
+      // Usar FormData para enviar texto e arquivos juntos
+      const formData = new FormData();
+      formData.append('message', currentInput);
+      
+      // Adicionar todos os arquivos selecionados
+      currentFiles.forEach((file) => {
+        formData.append('file', file);
+      });
+
+      const res = await fetch("http://127.0.0.1:8000/api/v1/chat/", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to upload file");
+      if (!res.ok) {
+        let errorData;
+        try {
+          errorData = await res.json();
+        } catch {
+          errorData = { message: "Erro de resposta inválida" };
+        }
+        
+        const errorMessage = errorData?.detail || errorData?.message || "Erro desconhecido";
+        console.error("Falha na API:", res.status, errorMessage);
+        throw new Error(`API Error ${res.status}: ${errorMessage}`);
+      }
 
+      // A resposta agora é JSON
       const data = await res.json();
       const botMessage = {
         id: Date.now() + 1,
@@ -90,13 +79,23 @@ export function Chat() {
       };
       setMessages((prev) => [...prev, botMessage]);
 
-    } catch (error) {
-      setMessages(prev => prev.map(m => 
-          m.id === userMessage.id ? { ...m, content: "Erro ao analisar imagem." } : m
-      ));
+    } catch (error: any) {
+      console.error("Erro enviando mensagem:", error?.message || error || "Erro desconhecido");
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 2, role: "assistant", content: "Desculpe, ocorreu um erro." },
+      ]);
     } finally {
       setIsLoading(false);
     }
+  };
+  const handleFileSelect = (file: File) => {
+    // Adicionar novo arquivo à lista existente (não substituir)
+    setSelectedFiles(prev => [...prev, file]);
+  };
+
+  const removeFile = (indexToRemove: number) => {
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   useEffect(() => {
@@ -158,7 +157,9 @@ export function Chat() {
             setMessages((prev) => [...prev, msg]);
             return null;
           }}
-          onFileSelect={handleFileSubmit}
+          onFileSelect={handleFileSelect}
+          selectedFiles={selectedFiles}
+          onFileRemove={removeFile}
         />
       </form>
     </div>

@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import { cn, sanitizeUIMessages } from "@/lib/utils";
+import { PreviewAttachment } from "@/components/preview-attachment";
 
-import { ArrowUpIcon, StopIcon, PaperclipIcon } from "./icons";
+import { ArrowUpIcon, StopIcon, PaperclipIcon, UploadIcon } from "./icons";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
@@ -54,6 +55,8 @@ export function MultimodalInput({
   handleSubmit,
   className,
   onFileSelect,
+  selectedFiles = [],
+  onFileRemove,
 }: {
   chatId: string;
   input: string;
@@ -73,8 +76,9 @@ export function MultimodalInput({
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
   className?: string;
-  // --- CORREÇÃO AQUI ---
   onFileSelect: (file: File) => void;
+  selectedFiles?: File[];
+  onFileRemove?: (index: number) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,7 +111,7 @@ export function MultimodalInput({
       setInput(finalValue);
       adjustHeight();
     }
-  }, []);
+  }, [localStorageInput, setInput]);
 
   useEffect(() => {
     setLocalStorageInput(input);
@@ -127,13 +131,66 @@ export function MultimodalInput({
     }
   }, [handleSubmit, setLocalStorageInput, width]);
 
-  // Nova função para lidar com a seleção de arquivos
+  // Nova função para lidar com a seleção de arquivos (múltiplos)
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            onFileSelect(file); // <-- Chamando a função recebida
-        }
-    };
+    const files = event.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        onFileSelect(files[i]);
+      }
+    }
+    // Limpar o input para permitir selecionar o mesmo arquivo novamente
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  // Funções para drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = e.dataTransfer.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        onFileSelect(files[i]);
+      }
+    }
+  };
+
+  // Função para renderizar preview usando o componente existente
+  const renderFilePreview = (file: File, index: number) => {
+    const fileUrl = URL.createObjectURL(file);
+
+    return (
+      <div key={`${file.name}-${index}`} className="flex-shrink-0">
+        <PreviewAttachment
+          attachment={{
+            name: file.name,
+            url: fileUrl,
+            contentType: file.type,
+          }}
+          showRemoveButton={!!onFileRemove}
+          onRemove={() => onFileRemove?.(index)}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="relative w-full flex flex-col gap-4">
@@ -166,77 +223,110 @@ export function MultimodalInput({
         </div>
       )}
 
-      {/* Container para o Textarea e botões */}
-      <div className="relative flex items-center">
-        {/* Botão de Anexo */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
-        >
-          <PaperclipIcon size={16} />
-          <span className="sr-only">Anexar arquivo</span>
-        </Button>
-
+      {/* Container principal que engloba preview e input - AGORA É A DROPZONE */}
+      <div 
+        className="bg-muted/30 rounded-2xl flex flex-col border-2 border-dashed border-muted-foreground/15 transition-colors hover:border-muted-foreground/30 hover:bg-muted/50"
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* Input de arquivo oculto */}
         <input
           type="file"
           ref={fileInputRef}
           className="hidden"
           onChange={handleFileChange}
+          multiple
+          accept="image/*,application/pdf,.pdf,.doc,.docx,.txt"
         />
 
-      <Textarea
-        ref={textareaRef}
-        placeholder="Send a message..."
-        value={input}
-        onChange={handleInput}
-        className={cn(
-          "min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl !text-base bg-muted",
-          className,
+        {/* Área de Preview dos Arquivos */}
+        {selectedFiles && selectedFiles.length > 0 && (
+          <div className="p-3">
+            <div className="flex gap-3 overflow-x-auto items-center">
+              {selectedFiles.map((file, index) => renderFilePreview(file, index))}
+              {/* Botão simples para adicionar mais arquivos */}
+              <div className="flex-shrink-0 w-20 aspect-video flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-primary/50 hover:text-primary/75 transition-colors cursor-pointer rounded-full hover:bg-muted/50"
+                  disabled={isLoading}
+                  aria-label="Adicionar mais arquivos"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
-        rows={3}
-        autoFocus
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
 
-            if (isLoading) {
-              toast.error("Please wait for the model to finish its response!");
-            } else {
-              submitForm();
-            }
-          }
-        }}
-      />
+        {/* Container para o Textarea e botões */}
+        <div className="relative flex items-center p-2">
+          {/* Ícone de upload centralizado - apenas quando não há texto nem arquivos */}
+          {!input && (!selectedFiles || selectedFiles.length === 0) && (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 flex items-center justify-center cursor-pointer text-primary/50 hover:text-primary/75 transition-colors z-5 pointer-events-none"
+            >
+              <div className="pointer-events-auto">
+                <UploadIcon size={20} />
+              </div>
+            </div>
+          )}
 
-      {isLoading ? (
-        <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
-          onClick={(event) => {
-            event.preventDefault();
-            stop();
-            setMessages((messages) => sanitizeUIMessages(messages));
-          }}
-        >
-          <StopIcon size={14} />
-        </Button>
-      ) : (
-        <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
-          onClick={(event) => {
-            event.preventDefault();
-            submitForm();
-          }}
-          disabled={input.length === 0}
-        >
-          <ArrowUpIcon size={14} />
-        </Button>
-        
-      )}
-    </div>
+          <Textarea
+            ref={textareaRef}
+            placeholder="Digite sua mensagem..."
+            value={input}
+            onChange={handleInput}
+            className={cn(
+              "min-h-[50px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-lg !text-base bg-transparent border-0 pl-4 pr-12 focus:ring-0 focus:ring-offset-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+              className,
+            )}
+            rows={2}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+
+                if (isLoading) {
+                  toast.error("Please wait for the model to finish its response!");
+                } else {
+                  submitForm();
+                }
+              }
+            }}
+          />
+
+          {isLoading ? (
+            <Button
+              className="rounded-full p-1.5 h-fit absolute bottom-4 right-4 m-0.5 border dark:border-zinc-600"
+              onClick={(event) => {
+                event.preventDefault();
+                stop();
+                setMessages((messages) => sanitizeUIMessages(messages));
+              }}
+            >
+              <StopIcon size={14} />
+            </Button>
+          ) : (
+            <Button
+              className="rounded-full p-1.5 h-fit absolute bottom-4 right-4 m-0.5 border dark:border-zinc-600"
+              onClick={(event) => {
+                event.preventDefault();
+                submitForm();
+              }}
+              disabled={input.length === 0 && (!selectedFiles || selectedFiles.length === 0)}
+            >
+              <ArrowUpIcon size={14} />
+            </Button>
+          )}
+        </div>
+      </div>
   </div>
   );
 }
