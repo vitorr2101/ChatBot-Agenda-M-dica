@@ -35,26 +35,23 @@ export function Chat() {
     
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-    
-    // Limpar campos após adicionar à lista de mensagens
     const currentInput = input;
     const currentFiles = [...selectedFiles];
     setInput("");
     setSelectedFiles([]);
 
     try {
-      // Usar FormData para enviar texto e arquivos juntos
       const formData = new FormData();
       formData.append('message', currentInput);
       
-      // Adicionar todos os arquivos selecionados
       currentFiles.forEach((file) => {
         formData.append('file', file);
       });
 
-      const res = await fetch("http://127.0.0.1:8000/api/v1/chat/", {
+      const res = await fetch("http://localhost:8000/api/v1/chat/", {
         method: "POST",
         body: formData,
+        credentials: 'include',
       });
 
       if (!res.ok) {

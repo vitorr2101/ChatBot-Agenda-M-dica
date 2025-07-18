@@ -14,7 +14,8 @@ from .configs.settings import (
     DEBUG,
     LOG_LEVEL,
     API_HOST,
-    API_PORT
+    API_PORT,
+    CORS_ORIGINS
 )
 from .configs.logging_config import configure_root_logger, get_logger
 from .exception_handlers import http_exception_handler
@@ -109,7 +110,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,8 +120,11 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET_KEY,
     session_cookie="session",               
-    same_site="lax",             
-    https_only=False             
+    same_site="lax",  
+    https_only=False,
+    max_age=86400,  
+    path="/",
+    domain=None 
 )
 
 app.add_exception_handler(HTTPException, http_exception_handler)
@@ -134,7 +138,7 @@ if __name__ == "__main__":
     import uvicorn
     
     uvicorn.run(
-        "app.main:app",
+        app,  # Pass the app directly instead of string
         host=API_HOST, 
         port=API_PORT, 
         log_level=LOG_LEVEL.lower(),

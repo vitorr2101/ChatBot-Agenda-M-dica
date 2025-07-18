@@ -15,6 +15,7 @@ from app.services.orchestrator import ChatOrchestrator
 from app.services.chat_store import chat_store
 from app.schemas.chat import ChatResponse
 from app.utils.session_manager import get_or_create_session
+from app.utils.chat_formatter import format_chat_history
 from app.configs.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -35,6 +36,13 @@ async def send_message(
     formatação de conteúdo e chamada ao serviço principal.
     """
     try:
+        session_id = request.session.get("session_id")
+        cookies = request.cookies
+        logger.info(f"Request session ID: {session_id}")
+        logger.info(f"Session keys: {list(request.session.keys())}")
+        logger.info(f"Cookies received: {dict(cookies)}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
         chat_session = await get_or_create_session(request, orchestrator)
 
         content_parts: list[object] = [message]
@@ -49,7 +57,17 @@ async def send_message(
             chat_session=chat_session,
             content=content_parts
         )
+
+        try:
+            history = chat_session.get_history()
+            session_id = request.session.get("session_id", "unknown")
+            formatted_history = format_chat_history(history)
+            logger.debug(f"Chat history for session {session_id[:8]}: {formatted_history}")
+
+        except Exception as e:
+            logger.warning(f"Could not format chat history: {e}")
         
+
         if response_text is None:
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "The service failed to produce a response.")
 
