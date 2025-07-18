@@ -66,7 +66,8 @@ def get_default_template_vars() -> Dict[str, Any]:
         Dictionary with default template variables.
     """
     return {
-        'current_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'current_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'clinic_name': 'Clínica Ampla Saúde'
     }
 
 GEMINI_API_KEY = get_required_env("GEMINI_API_KEY")

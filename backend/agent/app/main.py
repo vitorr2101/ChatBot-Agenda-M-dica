@@ -62,7 +62,8 @@ async def lifespan(app: FastAPI):
                     StdioServerParameters(
                         command=MCP_SERVERS["Medical Appointment System"]["command"],
                         args=MCP_SERVERS["Medical Appointment System"]["args"],
-                        env=MCP_SERVERS["Medical Appointment System"]["env"]
+                        env=MCP_SERVERS["Medical Appointment System"]["env"],
+                        cwd=MCP_SERVERS["Medical Appointment System"]["cwd"]
                     )
                 )
                 await app.state.mcp_client.connect()
