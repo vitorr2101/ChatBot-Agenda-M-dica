@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from app.services import DatabaseService
 from app.models import (
     Medico, AgendamentoDetalhado, ListaEspecialidades, 
-    SlotsDisponiveis, ReagendamentoRequest
+    SlotsDisponiveis
 )
 
 # --- Gerenciador de Ciclo de Vida (Lifespan) ---
@@ -57,20 +57,23 @@ def listar_especialidades_com_medicos() -> ListaEspecialidades:
     return db_service.listar_especialidades_com_medicos()
 
 @mcp.tool()
-def procurar_medicos(especialidade: Optional[str] = None) -> List[Medico]:
+def procurar_medicos(especialidade: str = "") -> List[Medico]:
     """
     Procura por médicos, com busca flexível por especialidade. Se nenhuma especialidade for 
     fornecida, lista todos os médicos disponíveis.
 
     Args:
-        especialidade (Optional[str]): O nome da especialidade (ex: "Cardiologia") ou do especialista (ex: "cardiologista").
+        especialidade (str): O nome da especialidade (ex: "Cardiologia") ou do especialista (ex: "cardiologista"). 
+                           Deixe vazio para listar todos os médicos.
 
     Returns:
         List[Medico]: Uma lista de objetos Medico, que pode estar vazia se nenhum for encontrado.
     """
     ctx = mcp.get_context()
     db_service: DatabaseService = ctx.request_context.lifespan_context.db_service
-    return db_service.procurar_medicos(especialidade)
+    # Convert empty string to None for the database service
+    especialidade_param = especialidade if especialidade.strip() else None
+    return db_service.procurar_medicos(especialidade_param)
 
 @mcp.tool()
 def verificar_disponibilidade_medico(medico_id: int, data_str: str) -> SlotsDisponiveis:
@@ -114,7 +117,7 @@ def agendar_exame_simples(nome_paciente: str, cpf_paciente: str, data_str: str, 
         raise HTTPException(status_code=400, detail=str(e))
 
 @mcp.tool()
-def agendar_consulta_com_medico(nome_paciente: str, cpf_paciente: str, data_str: str, hora_inicio_str: str, nome_medico: str, motivo_consulta: Optional[str] = "Consulta de rotina") -> AgendamentoDetalhado:
+def agendar_consulta_com_medico(nome_paciente: str, cpf_paciente: str, data_str: str, hora_inicio_str: str, nome_medico: str, motivo_consulta: str = "Consulta de rotina") -> AgendamentoDetalhado:
     """
     [USAR PARA CONSULTAS COM MÉDICO] Agenda uma consulta que requer um médico especialista.
 
@@ -124,7 +127,7 @@ def agendar_consulta_com_medico(nome_paciente: str, cpf_paciente: str, data_str:
         data_str (str): A data exata do agendamento (ex: '2025-07-15').
         hora_inicio_str (str): A hora exata do agendamento (ex: '14:00').
         nome_medico (str): O nome do médico especialista para a consulta.
-        motivo_consulta (Optional[str]): Opcional. O motivo da consulta ou exame associado.
+        motivo_consulta (str): O motivo da consulta ou exame associado (padrão: "Consulta de rotina").
 
     Returns:
         AgendamentoDetalhado: O objeto completo do agendamento realizado.
@@ -173,14 +176,15 @@ def obter_data_por_termo_relativo(termo_data: str) -> str:
     return db_service.obter_data_por_termo_relativo(termo_data)
 
 @mcp.tool()
-def reagendar_consulta(consulta_id: int, request: ReagendamentoRequest) -> AgendamentoDetalhado:
+def reagendar_consulta(consulta_id: int, nova_data_str: str, nova_hora_str: str) -> AgendamentoDetalhado:
     """
     [GERENCIAMENTO] Reagenda uma consulta existente para uma nova data e hora.
     Esta função deve ser usada após o usuário confirmar qual consulta deseja alterar.
 
     Args:
         consulta_id (int): O ID numérico da consulta a ser reagendada.
-        request (ReagendamentoRequest): Um objeto contendo a nova data e hora desejada.
+        nova_data_str (str): A nova data desejada no formato 'YYYY-MM-DD' (ex: '2025-07-20').
+        nova_hora_str (str): A nova hora desejada no formato 'HH:MM' (ex: '15:30').
 
     Returns:
         AgendamentoDetalhado: Os detalhes completos da consulta após o reagendamento.
@@ -189,7 +193,7 @@ def reagendar_consulta(consulta_id: int, request: ReagendamentoRequest) -> Agend
         ctx = mcp.get_context()
         db_service: DatabaseService = ctx.request_context.lifespan_context.db_service
         return db_service.reagendar_consulta(
-            consulta_id, request.nova_data_str, request.nova_hora_str
+            consulta_id, nova_data_str, nova_hora_str
         )
     except ValueError as e:
         # Erros de lógica (ex: conflito de horário, consulta não encontrada)
@@ -220,4 +224,4 @@ if __name__ == "__main__":
     # Para modo API Web: python server.py
     print("Iniciando servidor MCP em modo de API Web (HTTP)...")
 
-    mcp.run(transport="streamable-http")
+    mcp.run(transport="stdio")
