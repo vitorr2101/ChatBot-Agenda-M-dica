@@ -29,7 +29,7 @@ class ChatOrchestrator:
         self,
         system_instruction: Optional[str] = None,
         history: Optional[List[types.ContentOrDict]] = None
-    ) -> str:
+    ) -> Any:
         """
         Create a new chat session.
         

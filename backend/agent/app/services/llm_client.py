@@ -150,11 +150,22 @@ class GeminiLLMClient(LLMClientInterface):
         if max_output_tokens is not None:
             config_params['max_output_tokens'] = max_output_tokens
         if tools is not None:
-            config_params['tools'] = tools
-            config_params['automatic_function_calling'] = types.AutomaticFunctionCallingConfig(
-                disable = False,
-                ignore_call_history = False
-            )
+            mcp_sessions = []
+            for tool in tools:
+                if hasattr(tool, 'session') and tool.session is not None:
+                    mcp_sessions.append(tool.session)
+                elif hasattr(tool, 'is_connected') and tool.is_connected:
+                    if hasattr(tool, 'session') and tool.session is not None:
+                        mcp_sessions.append(tool.session)
+                else:
+                    mcp_sessions.append(tool)
+            
+            if mcp_sessions:
+                config_params['tools'] = mcp_sessions
+                config_params['automatic_function_calling'] = types.AutomaticFunctionCallingConfig(
+                    disable = False,
+                    ignore_call_history = False
+                )
 
         generation_config = types.GenerateContentConfig(**config_params) if config_params else None
 
