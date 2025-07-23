@@ -52,7 +52,7 @@ class ChatOrchestrator:
         self,
         chat_session: Any,
         content: List,
-        temperature: Optional[float] = 0.1,
+        temperature: Optional[float] = None,
         max_output_tokens: Optional[int] = None
     ) -> Optional[str]:
         """
