@@ -2,14 +2,15 @@ from app.configs.settings import SYSTEM_INSTRUCTION
 from google import genai
 from google.genai import types
 import google.api_core.exceptions as core_exceptions
+from fastapi import UploadFile, HTTPException, status
 from typing import Optional, Any, List
 import asyncio
 import random
-import logging
 
 from .llm_client_interface import LLMClientInterface
+from app.configs.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class GeminiLLMClient(LLMClientInterface):
     """
@@ -32,8 +33,8 @@ class GeminiLLMClient(LLMClientInterface):
     
     def create_chat(
         self, 
-        history: list[types.ContentOrDict] = None, 
-        system_instruction: Optional[str] = None
+        system_instruction: Optional[str] = None,
+        history: Optional[list[types.ContentOrDict]] = None
     ) -> Any:
         """
         Create a new chat session.
@@ -54,6 +55,29 @@ class GeminiLLMClient(LLMClientInterface):
             ),
             history=history
         )
+    
+    async def format_file_part(self, file: UploadFile) -> types.Part:
+        """
+        Converte um UploadFile em um objeto Part do Gemini SDK.
+        Levanta uma exceção se o tipo MIME não for encontrado.
+        
+        Args:
+            file: O arquivo enviado via FastAPI.
+            
+        Returns:
+            types.Part: Objeto Part formatado para o Gemini SDK.
+            
+        Raises:
+            HTTPException: Se o tipo MIME não for fornecido.
+        """
+        if not file.content_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File MIME type is required but was not provided."
+            )
+
+        file_bytes = await file.read()
+        return types.Part.from_bytes(mime_type=file.content_type, data=file_bytes)
     
     async def _retry_with_exponential_backoff(self, func, *args, **kwargs):
         """
@@ -93,12 +117,15 @@ class GeminiLLMClient(LLMClientInterface):
             except Exception as e:
                 raise e
                 
-        raise last_exception
+        if last_exception is not None:
+            raise last_exception
+        else:
+            raise Exception("Unknown error occurred during retries.")
     
     async def send_message(
         self, 
         chat_session: Any, 
-        message_parts: List,
+        content: List,
         temperature: Optional[float] = 0.1,
         max_output_tokens: Optional[int] = None,
         tools: Optional[list] = None
@@ -109,7 +136,7 @@ class GeminiLLMClient(LLMClientInterface):
 
         Args:
             chat_session: The active chat session.
-            message_parts: A list containing message content (e.g., [text, image_data]).
+            content: A list containing message content (e.g., [text, image_data]).
             temperature: Optional response creativity (0.0 to 1.0).
             max_output_tokens: Optional maximum number of tokens in the response.
             tools: Optional list of tools for function calling.
@@ -123,18 +150,28 @@ class GeminiLLMClient(LLMClientInterface):
         if max_output_tokens is not None:
             config_params['max_output_tokens'] = max_output_tokens
         if tools is not None:
-            config_params['tools'] = tools
-            config_params['automatic_function_calling'] = types.AutomaticFunctionCallingConfig(
-                disable = False,
-                ignore_call_history = False
-            )
+            mcp_sessions = []
+            for tool in tools:
+                if hasattr(tool, 'session') and tool.session is not None:
+                    mcp_sessions.append(tool.session)
+                elif hasattr(tool, 'is_connected') and tool.is_connected:
+                    if hasattr(tool, 'session') and tool.session is not None:
+                        mcp_sessions.append(tool.session)
+                else:
+                    mcp_sessions.append(tool)
+            
+            if mcp_sessions:
+                config_params['tools'] = mcp_sessions
+                config_params['automatic_function_calling'] = types.AutomaticFunctionCallingConfig(
+                    disable = False,
+                    ignore_call_history = False
+                )
 
         generation_config = types.GenerateContentConfig(**config_params) if config_params else None
 
         async def _send_request():
-            # A mudança principal está aqui: enviamos 'message_parts' diretamente.
             response = await chat_session.send_message(
-                message_parts,
+                content,
                 config=generation_config
             )
             return response.text
@@ -144,6 +181,5 @@ class GeminiLLMClient(LLMClientInterface):
         except core_exceptions.ServiceUnavailable as e:
             return f"Service unavailable after {self.max_retries} retries: {e.message if hasattr(e, 'message') else str(e)}"
         except Exception as e:
-            # É uma boa prática logar o erro aqui também
             logger.error(f"Error during send_message to Gemini: {e}")
             return f"Error sending message: {str(e)}"

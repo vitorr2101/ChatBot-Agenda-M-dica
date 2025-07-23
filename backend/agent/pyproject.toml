@@ -12,3 +12,7 @@ dependencies = [
     "mcp>=1.9.2",
     "python-dotenv>=1.1.0",
 ]
+
+[project.scripts]
+dev = "python -m app.main"
+start = "uvicorn app.main:app"

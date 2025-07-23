@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional
+from google.genai import types
+from fastapi import UploadFile
 
 class LLMClientInterface(ABC):
     """
@@ -28,7 +30,8 @@ class LLMClientInterface(ABC):
     @abstractmethod
     def create_chat(
         self,
-        system_instruction: Optional[str] = None
+        system_instruction: Optional[str] = None,
+        history: Optional[List[types.ContentOrDict]] = None
     ) -> Any:
         """
         Create a new chat session.
@@ -45,7 +48,7 @@ class LLMClientInterface(ABC):
     async def send_message(
         self,
         chat_session: Any,
-        message_parts: List,
+        content: List,
         temperature: Optional[float] = 0.1,
         max_output_tokens: Optional[int] = None,
         tools: Optional[list] = None
@@ -56,7 +59,7 @@ class LLMClientInterface(ABC):
 
         Args:
             chat_session: The active chat session.
-            message_parts: A list containing message content (e.g., [text, image_data]).
+            content: A list containing message content (e.g., [text, image_data]).
             temperature: Optional creativity/randomness for the response (0.0 to 1.0).
             max_output_tokens: Optional maximum number of tokens in the response.
             tools: Optional list of tools/sessions for function calling.
@@ -65,3 +68,21 @@ class LLMClientInterface(ABC):
             The LLM's response text.
         """
         pass
+
+    @abstractmethod
+    async def format_file_part(self, file: UploadFile) -> types.Part:
+        """
+        Converte um UploadFile em um objeto Part do LLM SDK.
+        
+        Args:
+            file: O arquivo enviado via FastAPI.
+            
+        Returns:
+            types.Part: Objeto Part formatado para o LLM SDK.
+        """
+        pass
+
+    api_key: str
+    client: Any
+    model_name: str
+    max_retries: int

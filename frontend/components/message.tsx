@@ -6,39 +6,30 @@ import { HeartPulse } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Markdown } from "./markdown";
+import { PreviewAttachment } from "./preview-attachment";
 import { cn } from "@/lib/utils";
+
+// Interface estendida para mensagens com arquivos
+interface MessageWithFiles extends Message {
+  files?: Array<{
+    name: string;
+    url: string;
+  }>;
+}
 
 export const PreviewMessage = ({
   message,
 }: {
   chatId: string;
-  message: Message;
+  message: MessageWithFiles;
   isLoading: boolean;
 }) => {
   const [displayedContent, setDisplayedContent] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    if (message.role === "assistant" && message.content) {
-      let charIndex = 0;
-      setDisplayedContent("");
-      setIsTyping(true);
-
-      const intervalId = setInterval(() => {
-        if (charIndex < message.content.length) {
-          setDisplayedContent((prev) => prev + message.content[charIndex]);
-          charIndex++;
-        } else {
-          clearInterval(intervalId);
-          setIsTyping(false);
-        }
-      }, 15);
-
-      return () => clearInterval(intervalId);
-    } else {
-      setDisplayedContent(message.content);
-      setIsTyping(false);
-    }
+    setDisplayedContent(message.content || "");
+    setIsTyping(false);
   }, [message.content, message.role]);
 
   return (
@@ -60,7 +51,28 @@ export const PreviewMessage = ({
         )}
 
         <div className="flex flex-col gap-2 w-full">
-          {message.content && (
+          {/* Renderizar arquivos usando o componente PreviewAttachment existente */}
+          {message.files && message.files.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {message.files.map((file, index) => (
+                <PreviewAttachment
+                  key={index}
+                  attachment={{
+                    name: file.name,
+                    url: file.url,
+                    contentType: file.name.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i) ? 
+                      `image/${file.name.split('.').pop()?.toLowerCase()}` : 
+                      'application/octet-stream'
+                  }}
+                  isUploading={false}
+                  showRemoveButton={false}
+                  nameTextColor="text-accent-foreground"
+                />
+              ))}
+            </div>
+          )}
+          
+          {message.content && displayedContent && (
             <div className="flex flex-col gap-4">
               <Markdown>{displayedContent}</Markdown>
             </div>

@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
-import logging
+from app.configs.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # WARNING: This is a simplified in-memory store for development purposes.
 # In production, consider using a persistent store like Redis or a database.

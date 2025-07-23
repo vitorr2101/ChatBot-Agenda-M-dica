@@ -1,22 +1,28 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exception_handlers import http_exception_handler
 from starlette.middleware.sessions import SessionMiddleware
 from mcp.client.stdio import StdioServerParameters
 from contextlib import asynccontextmanager
-import logging
 
 from .services.orchestrator import ChatOrchestrator
 from .services.llm_client import GeminiLLMClient
 from .services.mcp_client import MCPStdioClient
-from .configs.settings import GEMINI_API_KEY, DEFAULT_MODEL, SESSION_SECRET_KEY
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+from .configs.settings import (
+    GEMINI_API_KEY, 
+    DEFAULT_MODEL, 
+    SESSION_SECRET_KEY,
+    DEBUG,
+    LOG_LEVEL,
+    API_HOST,
+    API_PORT,
+    CORS_ORIGINS
 )
+from .configs.logging_config import configure_root_logger, get_logger
+from .exception_handlers import http_exception_handler
 
-logger = logging.getLogger(__name__)
+# Configure logging
+configure_root_logger()
+logger = get_logger(__name__)
 
 try:
     from .configs.mcp_server_config import MCP_SERVERS
@@ -60,7 +66,9 @@ async def lifespan(app: FastAPI):
                     )
                 )
                 await app.state.mcp_client.connect()
-                mcp_tools = [app.state.mcp_client.session]
+                if app.state.mcp_client.is_connected:
+                    mcp_tools.append(app.state.mcp_client)
+
                 logger.info("MCP client initialized successfully")
             
         except Exception as mcp_error:
@@ -102,7 +110,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,8 +120,11 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET_KEY,
     session_cookie="session",               
-    same_site="lax",             
-    https_only=False             
+    same_site="lax",  
+    https_only=False,
+    max_age=86400,  
+    path="/",
+    domain=None 
 )
 
 app.add_exception_handler(HTTPException, http_exception_handler)
@@ -125,6 +136,11 @@ app.include_router(status.router, prefix="/api/v1/status", tags=["status"])
 
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-    logger.info("FastAPI server started at http://localhost:8000")
+    
+    uvicorn.run(
+        app,  # Pass the app directly instead of string
+        host=API_HOST, 
+        port=API_PORT, 
+        log_level=LOG_LEVEL.lower(),
+        reload=DEBUG
+    )
