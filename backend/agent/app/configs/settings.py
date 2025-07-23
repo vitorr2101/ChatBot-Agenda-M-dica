@@ -66,7 +66,8 @@ def get_default_template_vars() -> Dict[str, Any]:
         Dictionary with default template variables.
     """
     return {
-        'current_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'current_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'clinic_name': 'Clínica Ampla Saúde'
     }
 
 GEMINI_API_KEY = get_required_env("GEMINI_API_KEY")
@@ -79,6 +80,6 @@ API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
 DATABASE_URL = os.getenv("DATABASE_URL")
-SYSTEM_INSTRUCTION = load_prompt('system_instruction.md', get_default_template_vars())
-
+SYSTEM_INSTRUCTION = load_prompt('system_instruction_V1.md', get_default_template_vars())
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0.5"))
 

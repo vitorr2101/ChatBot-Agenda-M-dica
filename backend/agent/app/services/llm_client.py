@@ -126,7 +126,7 @@ class GeminiLLMClient(LLMClientInterface):
         self, 
         chat_session: Any, 
         content: List,
-        temperature: Optional[float] = 0.1,
+        temperature: Optional[float] = None,
         max_output_tokens: Optional[int] = None,
         tools: Optional[list] = None
     ) -> str:
@@ -146,7 +146,7 @@ class GeminiLLMClient(LLMClientInterface):
         """
         config_params = {}
         if temperature is not None:
-            config_params['temperature'] = temperature
+            config_params['temperature'] = TEMPERATURE if temperature is None else temperature
         if max_output_tokens is not None:
             config_params['max_output_tokens'] = max_output_tokens
         if tools is not None:
