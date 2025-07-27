@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# MCP Server Configuration
-agent/app/configs/mcp_server_config.py
-
 # C extensions
 *.so
 
