@@ -17,13 +17,9 @@ cleanup() {
     if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null
     fi
-    if [ ! -z "$MCP_PID" ]; then
-        kill $MCP_PID 2>/dev/null
-    fi
     
     pkill -f "next dev" 2>/dev/null
     pkill -f "uvicorn.*app.main:app" 2>/dev/null
-    pkill -f "python.*server.py" 2>/dev/null
     
     echo -e "${GREEN}Todos os serviços foram encerrados.${NC}"
     exit 0
@@ -63,16 +59,7 @@ BACKEND_PID=$!
 cd ../..
 echo -e "${GREEN}✓ Backend iniciado (PID: $BACKEND_PID)${NC}"
 
-sleep 2
-
-echo -e "${BLUE}Iniciando Servidor MCP...${NC}"
-cd backend/server
-.venv/bin/python server.py > ../../logs/mcp-server.log 2>&1 &
-MCP_PID=$!
-cd ../..
-echo -e "${GREEN}✓ Servidor MCP iniciado (PID: $MCP_PID)${NC}"
-
-sleep 2
+sleep 3
 
 echo -e "${BLUE}Iniciando Frontend...${NC}"
 cd frontend
@@ -91,7 +78,6 @@ echo -e "  API Docs:     http://localhost:8000/docs"
 echo ""
 echo -e "${BLUE}Logs em tempo real:${NC}"
 echo -e "  Backend:      tail -f logs/backend.log"
-echo -e "  MCP Server:   tail -f logs/mcp-server.log"
 echo -e "  Frontend:     tail -f logs/frontend.log"
 echo ""
 echo -e "${YELLOW}Pressione Ctrl+C para encerrar todos os serviços${NC}"

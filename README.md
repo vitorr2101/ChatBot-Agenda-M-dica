@@ -61,6 +61,8 @@ Servidor que implementa o Model Context Protocol fornecendo ferramentas especial
 
 **Localização**: `backend/server/`
 
+**Nota**: O MCP server é automaticamente iniciado pelo Backend Agent, não requerendo execução separada.
+
 ## Funcionalidades Principais
 
 ### Agendamento Inteligente
@@ -275,10 +277,7 @@ npm run dev:frontend
 npm run dev:backend
 ```
 
-#### MCP Server
-```bash
-npm run dev:mcp-server
-```
+**Nota:** O servidor MCP é iniciado automaticamente pelo backend agent.
 
 ### URLs de Acesso
 
@@ -292,15 +291,14 @@ npm run dev:mcp-server
 ### Desenvolvimento
 - `npm run dev`: Inicia todos os serviços em modo desenvolvimento
 - `npm run dev:frontend`: Apenas o frontend
-- `npm run dev:backend`: Apenas o backend agent
-- `npm run dev:mcp-server`: Apenas o servidor MCP
+- `npm run dev:backend`: Apenas o backend agent (MCP server incluído automaticamente)
 
 ### Utilitários
 - `npm run setup`: Executa configuração automática
 - `npm run status`: Verifica status dos serviços em execução
 - `npm run clean`: Remove arquivos temporários e dependências
 - `npm run logs:backend`: Visualiza logs do backend em tempo real
-- `npm run logs:mcp-server`: Visualiza logs do servidor MCP
+- `npm run logs:frontend`: Visualiza logs do frontend em tempo real
 
 ### Produção
 - `npm run build`: Build de produção do frontend
@@ -342,19 +340,18 @@ O servidor MCP expõe as seguintes ferramentas para o agente de IA:
 ## Monitoramento e Logs
 
 ### Sistema de Logs
-- **Backend**: `logs/backend.log`
-- **MCP Server**: `logs/mcp-server.log`
+- **Backend**: `logs/backend.log` (inclui logs do MCP server integrado)
 - **Frontend**: `logs/frontend.log`
 
 ### Monitoramento em Tempo Real
 
 **Linux/macOS:**
 ```bash
-# Logs do backend
+# Logs do backend (inclui MCP server)
 tail -f logs/backend.log
 
-# Logs do servidor MCP
-tail -f logs/mcp-server.log
+# Logs do frontend
+tail -f logs/frontend.log
 
 # Status dos serviços
 npm run status
@@ -362,11 +359,11 @@ npm run status
 
 **Windows (PowerShell):**
 ```powershell
-# Logs do backend
+# Logs do backend (inclui MCP server)
 Get-Content logs/backend.log -Wait -Tail 50
 
-# Logs do servidor MCP
-Get-Content logs/mcp-server.log -Wait -Tail 50
+# Logs do frontend
+Get-Content logs/frontend.log -Wait -Tail 50
 
 # Status dos serviços
 npm run status
@@ -377,7 +374,7 @@ npm run status
 rem Para monitoramento contínuo use PowerShell
 rem Visualização única dos logs:
 type logs\backend.log
-type logs\mcp-server.log
+type logs\frontend.log
 
 rem Status dos serviços
 npm run status
