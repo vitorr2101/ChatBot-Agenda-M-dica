@@ -71,7 +71,9 @@ def get_default_template_vars() -> Dict[str, Any]:
     }
 
 GEMINI_API_KEY = get_required_env("GEMINI_API_KEY")
-MCP_SERVER_DIR = os.getenv("MCP_SERVER_DIR")  
+MCP_SERVER_DIR = os.getenv("MCP_SERVER_DIR", "../server")  
+MONGODB_URI = get_required_env("MONGODB_URI")
+MONGODB_NAME = os.getenv("MONGODB_DB_NAME", "Cluster0")
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-1.5-flash")
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", secrets.token_urlsafe(32))
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
@@ -82,4 +84,5 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1
 DATABASE_URL = os.getenv("DATABASE_URL")
 SYSTEM_INSTRUCTION = load_prompt('system_instruction_V1.md', get_default_template_vars())
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.5"))
+
 
