@@ -3,19 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev:pip",
-    "dev:uv": "concurrently \"npm run dev:frontend\" \"npm run dev:backend:uv\"",
-    "dev:pip": "concurrently \"npm run dev:frontend\" \"npm run dev:backend:pip\"",
-    "dev:frontend": "next dev",
-    "dev:backend:uv": "cd ../backend/agent && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
-    "dev:backend:pip": "cd ../backend/agent && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check:deps": "depcheck",
-    "install:backend": "npm run install:backend:pip",
-    "install:backend:uv": "cd ../backend/agent && uv sync",
-    "install:backend:pip": "pip install -r ../backend/agent/requirements.txt"
+    "check:deps": "depcheck"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -23,7 +15,6 @@
     "ai": "^4.3.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "concurrently": "^8.2.2",
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.4",
     "framer-motion": "^11.18.2",
