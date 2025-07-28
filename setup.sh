@@ -114,17 +114,6 @@ setup_mcp_server() {
     
     print_success "Servidor MCP configurado com sucesso!"
     
-    if [ ! -f ".env" ]; then
-        if [ -f ".env.example" ]; then
-            print_warning "IMPORTANTE: Arquivo .env não encontrado no servidor MCP!"
-            print_warning "Copie o arquivo .env.example para .env e configure as variáveis:"
-            print_warning "  cp backend/server/.env.example backend/server/.env"
-            print_warning "  Edite backend/server/.env com suas configurações (caminhos de modelo, chaves, etc.)"
-        else
-            print_warning "Arquivo .env não encontrado no servidor MCP. Certifique-se de criar um com as configurações necessárias."
-        fi
-    fi
-    
     cd ../..
 }
 
@@ -161,9 +150,8 @@ final_checks() {
     echo "2. Para desenvolvimento, use os comandos:"
     echo "   - Frontend: cd frontend && npm run dev"
     echo "   - Backend: cd backend/agent && source .venv/bin/activate && python -m uvicorn app.main:app --reload"
-    echo "   - Server MCP: cd backend/server && source .venv/bin/activate && python server.py"
     echo ""
-    echo "3. Ou use o script de desenvolvimento conjunto (se configurado no package.json da raiz)"
+    echo "3. Ou use o script de desenvolvimento conjunto (recomendado): ./dev-start.sh"
     echo ""
 }
 
