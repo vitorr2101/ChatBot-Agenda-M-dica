@@ -1,3 +1,5 @@
 mcp[cli]
+fastapi
+uvicorn
 python-dotenv
 pymongo
