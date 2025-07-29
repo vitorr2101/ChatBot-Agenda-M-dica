@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from app.services import DatabaseService
 from app.models import (
     Medico, AgendamentoDetalhado, ListaEspecialidades, 
-    SlotsDisponiveis
+    SlotsDisponiveis, TodosHorariosDisponiveis
 )
 
 # --- Gerenciador de Ciclo de Vida (Lifespan) ---
@@ -91,6 +91,28 @@ def verificar_disponibilidade_medico(medico_id: int, data_str: str) -> SlotsDisp
     db_service: DatabaseService = ctx.request_context.lifespan_context.db_service
     try:
         return db_service.verificar_disponibilidade_medico(medico_id, data_str)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@mcp.tool()
+def verificar_horarios_disponiveis_geral(data_str: str, especialidade: str = "") -> TodosHorariosDisponiveis:
+    """
+    [NOVA FUNCIONALIDADE] Retorna os horários livres de TODOS os médicos para uma data específica, 
+    sem precisar escolher um médico primeiro. Útil para mostrar todas as opções disponíveis 
+    quando o usuário não tem preferência por médico específico.
+
+    Args:
+        data_str (str): A data para verificação no formato 'YYYY-MM-DD'.
+        especialidade (str): [OPCIONAL] Filtrar apenas médicos de uma especialidade específica. 
+                           Se vazio, mostra horários de todos os médicos da clínica.
+
+    Returns:
+        TodosHorariosDisponiveis: Objeto contendo todos os médicos com horários livres na data.
+    """
+    ctx = mcp.get_context()
+    db_service: DatabaseService = ctx.request_context.lifespan_context.db_service
+    try:
+        return db_service.verificar_horarios_disponiveis_geral(data_str, especialidade)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
