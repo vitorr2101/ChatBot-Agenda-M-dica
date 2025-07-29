@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from app.models import (
     Medico, AgendamentoDetalhado, ListaEspecialidades, 
-    SlotsDisponiveis, Paciente, StatusConsulta, TodosHorariosDisponiveis, HorariosMedicoDisponiveis
+    SlotsDisponiveis, Paciente, StatusConsulta
 )
 
 load_dotenv()
@@ -194,48 +194,6 @@ class DatabaseService:
             slot_atual += duracao_slot
             
         return SlotsDisponiveis(slots_livres=slots_livres)
-
-    def verificar_horarios_disponiveis_geral(self, data_str: str, especialidade: str = "") -> TodosHorariosDisponiveis:
-        """
-        Retorna os horários livres de todos os médicos (ou de uma especialidade específica) para uma data.
-        
-        Args:
-            data_str (str): Data no formato 'YYYY-MM-DD'.
-            especialidade (str): Especialidade específica (opcional). Se vazio, mostra todos os médicos.
-            
-        Returns:
-            TodosHorariosDisponiveis: Objeto com horários livres de todos os médicos disponíveis.
-            
-        Raises:
-            ValueError: Se a data estiver em formato inválido.
-        """
-        try:
-            data_consulta = datetime.strptime(data_str, "%Y-%m-%d").date()
-        except (ValueError, TypeError):
-            raise ValueError("Formato da data é inválido. Use AAAA-MM-DD.")
-            
-        # Buscar médicos (filtrados por especialidade se especificada)
-        medicos = self.procurar_medicos(especialidade)
-        
-        medicos_disponiveis = []
-        
-        for medico in medicos:
-            # Verificar disponibilidade de cada médico
-            slots_medico = self.verificar_disponibilidade_medico(medico.id, data_str)
-            
-            # Só incluir médicos que têm horários livres
-            if slots_medico.slots_livres:
-                medicos_disponiveis.append(HorariosMedicoDisponiveis(
-                    medico_id=medico.id,
-                    nome_medico=medico.nome,
-                    especialidade=medico.nome_especialidade,
-                    slots_livres=slots_medico.slots_livres
-                ))
-        
-        return TodosHorariosDisponiveis(
-            data=data_str,
-            medicos_disponiveis=medicos_disponiveis
-        )
 
     def obter_data_por_termo_relativo(self, termo_data: str) -> str:
         """
