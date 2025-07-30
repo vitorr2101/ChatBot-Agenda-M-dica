@@ -23,8 +23,8 @@ import { Textarea } from "./ui/textarea";
 const suggestedActions = [
   {
     title: "Agendar uma consulta",
-    label: "com um clínico geral.",
-    action: "Gostaria de agendar uma consulta com um clínico geral.",
+    label: "com um médico da família.",
+    action: "Gostaria de agendar uma consulta com um médico da família.",
   },
   {
     title: "Verificar resultados de exames",
@@ -124,12 +124,13 @@ export function MultimodalInput({
 
   const submitForm = useCallback(() => {
     handleSubmit(undefined, {});
+    setInput("");
     setLocalStorageInput("");
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [handleSubmit, setLocalStorageInput, width]);
+  }, [handleSubmit, setInput, setLocalStorageInput, width]);
 
   // Nova função para lidar com a seleção de arquivos (múltiplos)
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
