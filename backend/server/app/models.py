@@ -55,3 +55,15 @@ class ListaEspecialidades(BaseModel):
 class SlotsDisponiveis(BaseModel):
     """Modelo para a resposta da ferramenta de verificação de disponibilidade."""
     slots_livres: List[Dict[str, str]]
+
+class HorariosMedicoDisponiveis(BaseModel):
+    """Modelo para horários disponíveis de um médico específico."""
+    medico_id: int
+    nome_medico: str
+    especialidade: str
+    slots_livres: List[Dict[str, str]]
+
+class TodosHorariosDisponiveis(BaseModel):
+    """Modelo para a resposta da ferramenta que mostra horários de todos os médicos."""
+    data: str
+    medicos_disponiveis: List[HorariosMedicoDisponiveis]
